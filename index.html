@@ -27,14 +27,12 @@
       .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-bottom: 16px; }
       .checkbox-label { background: #f4f7f6; padding: 11px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 0.95rem; line-height: 1.25; transition: opacity 0.3s; }
       .checkbox-label input { transform: scale(1.25); cursor: inherit; flex-shrink: 0; }
-      .nav-buttons { display: flex; gap: 10px; margin-top: 20px; }
-      .nav-buttons button { background-color: var(--primary-blue); color: white; border: none; padding: 14px 16px; font-size: 1.05rem; font-weight: bold; border-radius: 8px; cursor: pointer; flex: 1; transition: background-color 0.3s, opacity 0.3s; }
+      .nav-buttons { display: flex; gap: 12px; margin-top: 20px; }
+      .nav-buttons button { background-color: var(--primary-blue); color: white; border: none; padding: 14px 24px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; flex: 1; transition: background-color 0.3s, opacity 0.3s; }
       .nav-buttons button:hover:not(:disabled) { background-color: #0056b3; }
       .nav-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
       .nav-buttons button.back-btn { background-color: #e0e0e0; color: #333; }
       .nav-buttons button.back-btn:hover:not(:disabled) { background-color: #ccc; }
-      .nav-buttons button.skip-btn { background-color: #6c757d; color: white; }
-      .nav-buttons button.skip-btn:hover:not(:disabled) { background-color: #5a6268; }
 
       .step { display: none; animation: fadeIn 0.4s ease-in-out; position: relative; }
       .step.active { display: block; }
@@ -90,7 +88,7 @@
           <button type="button" class="action-btn text-btn" style="display:block;" onclick="nextStep()">Continue</button>
         </div>
 
-        <!-- Step 1: Preferred Name (Col C - Required) -->
+        <!-- Step 1: Preferred Name (Col C) -->
         <div class="step" id="step-1">
           <h2>Preferred Name</h2>
           <p class="step-hint">For privacy, use first name or nickname only.</p>
@@ -101,25 +99,25 @@
           </div>
         </div>
 
-        <!-- Step 2: Photo (Col D - Optional) -->
+        <!-- Step 2: Photo (Col D) -->
         <div class="step" id="step-2">
-          <h2 id="label-photo">Photo (Optional)</h2>
+          <h2 id="label-photo">Photo (Upload)</h2>
           <p class="step-hint">A clear headshot helps someone confirm this tag belongs to them.</p>
-          <input type="file" id="photoFile" accept="image/*" onchange="validateStep(2)">
+          <input type="file" id="photoFile" accept="image/*" required onchange="validateStep(2)">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(2)">Skip</button>
             <button type="button" id="btn-continue-2" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
 
-        <!-- Step 3: Primary Language (Col E - Required) -->
+        <!-- Step 3: Primary Language (Col E) -->
         <div class="step" id="step-3">
           <h2>Primary Language</h2>
           <select id="primaryLanguageSelect" onchange="handleLanguageChange()">
             <option value="English" selected>English</option>
             <option value="Spanish">Spanish</option>
             <option value="English & Spanish">English &amp; Spanish</option>
+            <option value="Japanese">Japanese</option>
             <option value="ASL / Sign Language">ASL / Sign Language</option>
             <option value="French">French</option>
             <option value="Mandarin">Mandarin</option>
@@ -133,7 +131,7 @@
           </div>
         </div>
 
-        <!-- Step 4: Approach & Communication (Col F - Checkbox Grid) -->
+        <!-- Step 4: Approach & Communication (Col F) -->
         <div class="step" id="step-4">
           <h2>Approach &amp; Communication</h2>
           <p class="step-hint">Help a stranger know how to safely approach and talk to them.</p>
@@ -153,70 +151,69 @@
           </div>
         </div>
 
-        <!-- Step 5: Calming Tip (Col G - Optional) -->
+        <!-- Step 5: Calming Tip (Col G) -->
         <div class="step" id="step-5">
-          <h2>Calming Tip (Optional)</h2>
-          <p class="step-hint">One short tip to help them stay calm while waiting for you.</p>
-          <input type="text" id="calmingTip" placeholder="e.g., Likes talking about trains, offer water..." oninput="validateStep(5)">
+          <h2>Calming Tip</h2>
+          <p class="step-hint">One short tip to help them stay calm while waiting (or enter "None").</p>
+          <input type="text" id="calmingTip" required placeholder="e.g., Likes talking about trains, offer water..." oninput="validateStep(5)">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(5)">Skip</button>
             <button type="button" id="btn-continue-5" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
 
-        <!-- Step 6: Medical Conditions (Col H - Optional) -->
+        <!-- Step 6: Medical Conditions (Col H) -->
         <div class="step" id="step-6">
-          <h2>Medical Conditions (Optional)</h2>
+          <h2>Medical Conditions</h2>
+          <p class="step-hint">Select all that apply, enter another condition, or choose None.</p>
           <div class="checkbox-grid">
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Autism" onchange="validateStep(6)"> Autism</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Dementia / Alzheimer's" onchange="validateStep(6)"> Dementia / Alzheimer's</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Down Syndrome" onchange="validateStep(6)"> Down Syndrome</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Epilepsy / Seizures" onchange="validateStep(6)"> Epilepsy / Seizures</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Diabetes" onchange="validateStep(6)"> Diabetes</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Asthma" onchange="validateStep(6)"> Asthma</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Heart Condition" onchange="validateStep(6)"> Heart Condition</label>
-            <label class="checkbox-label"><input type="checkbox" name="medical" value="Developmental Disability" onchange="validateStep(6)"> Developmental Disability</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" id="medical-none" value="None" onchange="handleMedicalNone()"> None</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Autism" onchange="handleMedicalOther()"> Autism</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Dementia / Alzheimer's" onchange="handleMedicalOther()"> Dementia / Alzheimer's</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Down Syndrome" onchange="handleMedicalOther()"> Down Syndrome</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Epilepsy / Seizures" onchange="handleMedicalOther()"> Epilepsy / Seizures</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Diabetes" onchange="handleMedicalOther()"> Diabetes</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Asthma" onchange="handleMedicalOther()"> Asthma</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" class="medical-other" value="Heart Condition" onchange="handleMedicalOther()"> Heart Condition</label>
           </div>
-          <input type="text" id="medicalOther" placeholder="Other condition(s)..." oninput="validateStep(6)">
+          <input type="text" id="medicalOther" placeholder="Other condition(s)..." oninput="handleMedicalOther()">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(6)">Skip</button>
             <button type="button" id="btn-continue-6" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
 
-        <!-- Step 7: Allergies & Critical Meds (Col I - Optional) -->
+        <!-- Step 7: Allergies & Critical Meds (Col I) -->
         <div class="step" id="step-7">
           <h2>Allergies &amp; Critical Meds</h2>
-          <p class="step-hint">Only include severe allergies or emergency-critical medications.</p>
+          <p class="step-hint">Select or enter severe allergies/emergency meds, or choose None Known.</p>
           <div class="checkbox-grid">
-            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Carries EpiPen" onchange="validateStep(7)"> Carries EpiPen</label>
-            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Carries Inhaler" onchange="validateStep(7)"> Carries Inhaler</label>
-            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Blood Thinners" onchange="validateStep(7)"> Blood Thinners</label>
-            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Insulin Dependent" onchange="validateStep(7)"> Insulin Dependent</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" id="allergies-none" value="None Known" onchange="handleAllergiesNone()"> None Known</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" class="allergies-other" value="Carries EpiPen" onchange="handleAllergiesOther()"> Carries EpiPen</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" class="allergies-other" value="Carries Inhaler" onchange="handleAllergiesOther()"> Carries Inhaler</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" class="allergies-other" value="Blood Thinners" onchange="handleAllergiesOther()"> Blood Thinners</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" class="allergies-other" value="Insulin Dependent" onchange="handleAllergiesOther()"> Insulin Dependent</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" class="allergies-other" value="Seizure Medication" onchange="handleAllergiesOther()"> Seizure Medication</label>
           </div>
-          <input type="text" id="allergiesOther" placeholder="e.g., Severe peanut allergy, seizure meds..." oninput="validateStep(7)">
+          <input type="text" id="allergiesOther" placeholder="e.g., Severe peanut allergy, penicillin..." oninput="handleAllergiesOther()">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(7)">Skip</button>
             <button type="button" id="btn-continue-7" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
 
-        <!-- Step 8: City/State (Col J - Optional) -->
+        <!-- Step 8: City/State (Col J) -->
         <div class="step" id="step-8">
-          <h2>City / State (Optional)</h2>
+          <h2>City / State</h2>
           <p class="step-hint">For safety, enter City &amp; State only—do not enter a street address.</p>
-          <input type="text" id="cityState" placeholder="e.g., Brownsville, TX" oninput="validateStep(8)">
+          <input type="text" id="cityState" required placeholder="e.g., Brownsville, TX" oninput="validateStep(8)">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(8)">Skip</button>
             <button type="button" id="btn-continue-8" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
 
-        <!-- Step 9: Primary Contact Name (Col K - Required) -->
+        <!-- Step 9: Primary Contact Name (Col K) -->
         <div class="step" id="step-9">
           <h2>Primary Caregiver Name</h2>
           <p class="step-hint">Include relationship if helpful (e.g., Jane Doe - Mother).</p>
@@ -227,7 +224,7 @@
           </div>
         </div>
 
-        <!-- Step 10: Primary Contact Phone (Col L - Required Double-Entry) -->
+        <!-- Step 10: Primary Contact Phone (Col L - Double-Entry) -->
         <div class="step" id="step-10">
           <h2>Primary Caregiver Phone</h2>
           <input type="tel" id="primaryContactPhone" required placeholder="Enter phone number..." oninput="validateStep(10)">
@@ -238,7 +235,7 @@
           </div>
         </div>
 
-        <!-- Step 11: Primary Contact Email (Col M - Required Double-Entry) -->
+        <!-- Step 11: Primary Contact Email (Col M - Double-Entry) -->
         <div class="step" id="step-11">
           <h2>Primary Caregiver Email</h2>
           <input type="email" id="primaryContactEmail" required placeholder="Enter email address..." oninput="validateStep(11)">
@@ -249,26 +246,24 @@
           </div>
         </div>
 
-        <!-- Step 12: Backup Contact Name (Col N - Optional) -->
+        <!-- Step 12: Backup Contact Name (Col N) -->
         <div class="step" id="step-12">
-          <h2>Backup Caregiver (Optional)</h2>
+          <h2>Backup Caregiver Name</h2>
           <p class="step-hint">A second contact if you can't answer right away.</p>
-          <input type="text" id="backupContactName" placeholder="e.g., John Doe (Father)" oninput="validateStep(12)">
+          <input type="text" id="backupContactName" required placeholder="e.g., John Doe (Father)" oninput="validateStep(12)">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(12)">Skip</button>
             <button type="button" id="btn-continue-12" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
 
-        <!-- Step 13: Backup Contact Phone (Col O - Optional Double-Entry) -->
+        <!-- Step 13: Backup Contact Phone (Col O - Double-Entry) -->
         <div class="step" id="step-13">
           <h2>Backup Caregiver Phone</h2>
-          <input type="tel" id="backupContactPhone" placeholder="Enter backup phone..." oninput="validateStep(13)">
-          <input type="tel" id="backupContactPhone_confirm" placeholder="Re-enter to confirm..." oninput="validateStep(13)" style="margin-top: 10px;">
+          <input type="tel" id="backupContactPhone" required placeholder="Enter backup phone..." oninput="validateStep(13)">
+          <input type="tel" id="backupContactPhone_confirm" required placeholder="Re-enter to confirm..." oninput="validateStep(13)" style="margin-top: 10px;">
           <div class="nav-buttons">
             <button class="back-btn" type="button" onclick="prevStep()">Back</button>
-            <button class="skip-btn" type="button" onclick="skipStep(13)">Skip</button>
             <button type="button" id="btn-continue-13" onclick="nextStep()" disabled>Continue</button>
           </div>
         </div>
@@ -409,6 +404,38 @@
         validateStep(4);
       }
 
+      function handleMedicalNone() {
+        const noneCb = document.getElementById('medical-none');
+        if (noneCb.checked) {
+          document.querySelectorAll('.medical-other').forEach(cb => cb.checked = false);
+          document.getElementById('medicalOther').value = '';
+        }
+        validateStep(6);
+      }
+
+      function handleMedicalOther() {
+        const anyOther = Array.from(document.querySelectorAll('.medical-other')).some(cb => cb.checked)
+          || document.getElementById('medicalOther').value.trim().length > 0;
+        if (anyOther) document.getElementById('medical-none').checked = false;
+        validateStep(6);
+      }
+
+      function handleAllergiesNone() {
+        const noneCb = document.getElementById('allergies-none');
+        if (noneCb.checked) {
+          document.querySelectorAll('.allergies-other').forEach(cb => cb.checked = false);
+          document.getElementById('allergiesOther').value = '';
+        }
+        validateStep(7);
+      }
+
+      function handleAllergiesOther() {
+        const anyOther = Array.from(document.querySelectorAll('.allergies-other')).some(cb => cb.checked)
+          || document.getElementById('allergiesOther').value.trim().length > 0;
+        if (anyOther) document.getElementById('allergies-none').checked = false;
+        validateStep(7);
+      }
+
       function validateStep(stepIndex) {
         const continueBtn = document.getElementById('btn-continue-' + stepIndex);
         if (!continueBtn) return;
@@ -460,11 +487,6 @@
       }
 
       function prevStep() {
-        if (currentStep === 14 && document.getElementById('backupContactName').value.trim() === '') {
-          currentStep = 12;
-          showStep(currentStep);
-          return;
-        }
         if (currentStep > 0) {
           currentStep--;
           showStep(currentStep);
@@ -474,39 +496,12 @@
       function nextStep() {
         if (currentStep === 1) {
           const name = document.getElementById('preferredName').value.trim();
-          document.getElementById('label-photo').innerText = name + "'s Photo (Optional)";
+          document.getElementById('label-photo').innerText = name + "'s Photo (Upload)";
         }
         if (currentStep < totalSteps) {
           currentStep++;
           showStep(currentStep);
         }
-      }
-
-      function skipStep(stepIndex) {
-        if (stepIndex === 2) {
-          document.getElementById('photoFile').value = '';
-        } else if (stepIndex === 5) {
-          document.getElementById('calmingTip').value = '';
-        } else if (stepIndex === 6) {
-          document.querySelectorAll('input[name="medical"]').forEach(cb => cb.checked = false);
-          document.getElementById('medicalOther').value = '';
-        } else if (stepIndex === 7) {
-          document.querySelectorAll('input[name="allergies"]').forEach(cb => cb.checked = false);
-          document.getElementById('allergiesOther').value = '';
-        } else if (stepIndex === 8) {
-          document.getElementById('cityState').value = '';
-        } else if (stepIndex === 12) {
-          document.getElementById('backupContactName').value = '';
-          document.getElementById('backupContactPhone').value = '';
-          document.getElementById('backupContactPhone_confirm').value = '';
-          currentStep = 14;
-          showStep(currentStep);
-          return;
-        } else if (stepIndex === 13) {
-          document.getElementById('backupContactPhone').value = '';
-          document.getElementById('backupContactPhone_confirm').value = '';
-        }
-        nextStep();
       }
 
       function getCheckedAndOther(checkboxName, otherInputId) {
