@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareTap System</title>
+    <style>
+      :root {
+        --primary-dark: #0a1128;
+        --primary-blue: #007bff;
+        --danger-red: #dc3545;
+        --bg-color: #f4f7f6;
+      }
+      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--bg-color); }
+
+      .card { background: rgba(255, 255, 255, 0.98); padding: 35px 25px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); text-align: center; max-width: 450px; width: 100%; box-sizing: border-box; }
+      .logo { max-width: 200px; margin-bottom: 20px; }
+
+      #loadingSpinner { font-size: 1.3rem; font-weight: bold; color: var(--primary-dark); background: white; padding: 25px 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+      .spinner-circle { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+      #setupWizard h1 { color: var(--primary-dark); margin-bottom: 24px; font-size: 1.8rem; }
+      #setupWizard h2 { font-size: 1.4rem; margin-bottom: 12px; color: var(--primary-dark); }
+      .step-hint { color: #555; font-size: 0.95rem; margin-top: 0; margin-bottom: 16px; line-height: 1.4; }
+      input[type="text"], input[type="tel"], input[type="email"], input[type="file"], select { width: 100%; padding: 14px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1.1rem; margin-bottom: 10px; background: #fff; }
+      .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; margin-bottom: 16px; }
+      .checkbox-label { background: #f4f7f6; padding: 11px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 0.95rem; line-height: 1.25; transition: opacity 0.3s; }
+      .checkbox-label input { transform: scale(1.25); cursor: inherit; flex-shrink: 0; }
+      .nav-buttons { display: flex; gap: 10px; margin-top: 20px; }
+      .nav-buttons button { background-color: var(--primary-blue); color: white; border: none; padding: 14px 16px; font-size: 1.05rem; font-weight: bold; border-radius: 8px; cursor: pointer; flex: 1; transition: background-color 0.3s, opacity 0.3s; }
+      .nav-buttons button:hover:not(:disabled) { background-color: #0056b3; }
+      .nav-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .nav-buttons button.back-btn { background-color: #e0e0e0; color: #333; }
+      .nav-buttons button.back-btn:hover:not(:disabled) { background-color: #ccc; }
+      .nav-buttons button.skip-btn { background-color: #6c757d; color: white; }
+      .nav-buttons button.skip-btn:hover:not(:disabled) { background-color: #5a6268; }
+
+      .step { display: none; animation: fadeIn 0.4s ease-in-out; position: relative; }
+      .step.active { display: block; }
+
+      .profile-pic { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; border: 5px solid var(--primary-blue); margin: 0 auto 20px; display: none; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+      #profileView h2 { color: #333; margin-top: 0; margin-bottom: 20px; line-height: 1.3; font-size: 1.7rem; font-weight: 700; }
+      #profileView h3 { color: #000000; font-weight: 900; text-transform: uppercase; margin-top: 0; margin-bottom: 20px; font-size: 2rem; letter-spacing: 1px; display: none; }
+      #profileView p.subtitle { color: #444; margin-bottom: 22px; line-height: 1.5; font-size: 1.15rem; }
+
+      .info-section { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 25px; text-align: left; display: none; border: 1px solid #e9ecef; }
+      .info-item { margin-bottom: 12px; font-size: 1.08rem; color: #333; line-height: 1.5; display: none; }
+      .info-item:last-child { margin-bottom: 0; }
+      .info-item strong { color: var(--primary-dark); font-weight: 700; }
+
+      .action-btn { padding: 18px 20px; font-size: 1.15rem; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; display: none; width: 100%; margin: 12px 0; text-decoration: none; box-sizing: border-box; text-align: center; transition: opacity 0.2s, transform 0.1s; }
+      .action-btn:active { transform: scale(0.98); }
+      .call-btn { background: var(--primary-dark); color: white; }
+      .text-btn { background: var(--primary-blue); color: white; }
+      .email-btn { background: var(--danger-red); color: white; }
+      .backup-divider { display: none; margin: 22px 0 8px; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #6c757d; }
+      .emergency-btn { background: transparent; color: var(--danger-red); border: 2px solid var(--danger-red); margin-top: 20px; display: block; }
+
+      .profile-footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; }
+      .profile-footer img { max-width: 140px; opacity: 0.85; }
+
+      .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.2s ease-in-out; }
+      .modal-card { background: white; padding: 35px 25px; border-radius: 12px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+      .modal-card h3 { color: var(--primary-dark); margin-top: 0; margin-bottom: 15px; font-size: 1.6rem; }
+      .modal-card p { color: #444; margin-bottom: 25px; font-size: 1.15rem; line-height: 1.5; }
+      .modal-btn { padding: 16px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; width: 100%; margin-bottom: 12px; color: white; }
+      .btn-allow { background-color: #28a745; }
+      .btn-skip { background-color: #6c757d; }
+
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+  </head>
+  <body>
+
+    <div id="loadingSpinner">
+      <div class="spinner-circle" id="spinnerAnim"></div>
+      <span id="loadingText">Connecting to CareTap...</span>
+    </div>
+
+    <!-- 1. SETUP WIZARD -->
+    <div class="card" id="setupWizard" style="display:none;">
+      <img src="CareTapLogoV1.png" alt="CareTap Logo" class="logo" onerror="this.style.display='none';">
+
+      <form id="caretapForm" onsubmit="return false;">
+        <!-- Step 0: Welcome -->
+        <div class="step active" id="step-0">
+          <h1>Let's get your CareTap set up!</h1>
+          <p style="color: #555; margin-bottom: 20px;" id="tagIdDisplay">Tag ID: </p>
+          <button type="button" class="action-btn text-btn" style="display:block;" onclick="nextStep()">Continue</button>
+        </div>
+
+        <!-- Step 1: Preferred Name (Col C - Required) -->
+        <div class="step" id="step-1">
+          <h2>Preferred Name</h2>
+          <p class="step-hint">For privacy, use first name or nickname only.</p>
+          <input type="text" id="preferredName" required placeholder="e.g., Alex" oninput="validateStep(1)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="btn-continue-1" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Photo (Col D - Optional) -->
+        <div class="step" id="step-2">
+          <h2 id="label-photo">Photo (Optional)</h2>
+          <p class="step-hint">A clear headshot helps someone confirm this tag belongs to them.</p>
+          <input type="file" id="photoFile" accept="image/*" onchange="validateStep(2)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(2)">Skip</button>
+            <button type="button" id="btn-continue-2" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Primary Language (Col E - Required) -->
+        <div class="step" id="step-3">
+          <h2>Primary Language</h2>
+          <select id="primaryLanguageSelect" onchange="handleLanguageChange()">
+            <option value="English" selected>English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="English & Spanish">English &amp; Spanish</option>
+            <option value="ASL / Sign Language">ASL / Sign Language</option>
+            <option value="French">French</option>
+            <option value="Mandarin">Mandarin</option>
+            <option value="Vietnamese">Vietnamese</option>
+            <option value="Other">Other...</option>
+          </select>
+          <input type="text" id="primaryLanguageOther" placeholder="Enter primary language..." style="display:none;" oninput="validateStep(3)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="btn-continue-3" onclick="nextStep()">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Approach & Communication (Col F - Checkbox Grid) -->
+        <div class="step" id="step-4">
+          <h2>Approach &amp; Communication</h2>
+          <p class="step-hint">Help a stranger know how to safely approach and talk to them.</p>
+          <div class="checkbox-grid">
+            <label class="checkbox-label" id="label-approach-none"><input type="checkbox" name="approach" id="approach-none" value="No Special Notes" checked onchange="validateStep(4)"> No Special Notes</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="Non-Verbal / Limited Speech" onchange="handleOtherApproach()"> Non-Verbal / Limited Speech</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="May Bolt / Wander" onchange="handleOtherApproach()"> May Bolt / Wander</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="Sensitive to Loud Noises" onchange="handleOtherApproach()"> Sensitive to Loud Noises</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="Do Not Touch / Startles Easily" onchange="handleOtherApproach()"> Do Not Touch / Startles Easily</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="Memory Loss / Easily Confused" onchange="handleOtherApproach()"> Memory Loss / Confused</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="Use Calm, Slow Voice" onchange="handleOtherApproach()"> Use Calm, Slow Voice</label>
+            <label class="checkbox-label"><input type="checkbox" name="approach" class="approach-other" value="Hard of Hearing / Blind" onchange="handleOtherApproach()"> Deaf / Blind</label>
+          </div>
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="btn-continue-4" onclick="nextStep()">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 5: Calming Tip (Col G - Optional) -->
+        <div class="step" id="step-5">
+          <h2>Calming Tip (Optional)</h2>
+          <p class="step-hint">One short tip to help them stay calm while waiting for you.</p>
+          <input type="text" id="calmingTip" placeholder="e.g., Likes talking about trains, offer water..." oninput="validateStep(5)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(5)">Skip</button>
+            <button type="button" id="btn-continue-5" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 6: Medical Conditions (Col H - Optional) -->
+        <div class="step" id="step-6">
+          <h2>Medical Conditions (Optional)</h2>
+          <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Autism" onchange="validateStep(6)"> Autism</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Dementia / Alzheimer's" onchange="validateStep(6)"> Dementia / Alzheimer's</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Down Syndrome" onchange="validateStep(6)"> Down Syndrome</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Epilepsy / Seizures" onchange="validateStep(6)"> Epilepsy / Seizures</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Diabetes" onchange="validateStep(6)"> Diabetes</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Asthma" onchange="validateStep(6)"> Asthma</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Heart Condition" onchange="validateStep(6)"> Heart Condition</label>
+            <label class="checkbox-label"><input type="checkbox" name="medical" value="Developmental Disability" onchange="validateStep(6)"> Developmental Disability</label>
+          </div>
+          <input type="text" id="medicalOther" placeholder="Other condition(s)..." oninput="validateStep(6)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(6)">Skip</button>
+            <button type="button" id="btn-continue-6" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 7: Allergies & Critical Meds (Col I - Optional) -->
+        <div class="step" id="step-7">
+          <h2>Allergies &amp; Critical Meds</h2>
+          <p class="step-hint">Only include severe allergies or emergency-critical medications.</p>
+          <div class="checkbox-grid">
+            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Carries EpiPen" onchange="validateStep(7)"> Carries EpiPen</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Carries Inhaler" onchange="validateStep(7)"> Carries Inhaler</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Blood Thinners" onchange="validateStep(7)"> Blood Thinners</label>
+            <label class="checkbox-label"><input type="checkbox" name="allergies" value="Insulin Dependent" onchange="validateStep(7)"> Insulin Dependent</label>
+          </div>
+          <input type="text" id="allergiesOther" placeholder="e.g., Severe peanut allergy, seizure meds..." oninput="validateStep(7)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(7)">Skip</button>
+            <button type="button" id="btn-continue-7" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 8: City/State (Col J - Optional) -->
+        <div class="step" id="step-8">
+          <h2>City / State (Optional)</h2>
+          <p class="step-hint">For safety, enter City &amp; State only—do not enter a street address.</p>
+          <input type="text" id="cityState" placeholder="e.g., Brownsville, TX" oninput="validateStep(8)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(8)">Skip</button>
+            <button type="button" id="btn-continue-8" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 9: Primary Contact Name (Col K - Required) -->
+        <div class="step" id="step-9">
+          <h2>Primary Caregiver Name</h2>
+          <p class="step-hint">Include relationship if helpful (e.g., Jane Doe - Mother).</p>
+          <input type="text" id="primaryContactName" required placeholder="e.g., Jane Doe (Mother)" oninput="validateStep(9)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="btn-continue-9" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 10: Primary Contact Phone (Col L - Required Double-Entry) -->
+        <div class="step" id="step-10">
+          <h2>Primary Caregiver Phone</h2>
+          <input type="tel" id="primaryContactPhone" required placeholder="Enter phone number..." oninput="validateStep(10)">
+          <input type="tel" id="primaryContactPhone_confirm" required placeholder="Re-enter to confirm..." oninput="validateStep(10)" style="margin-top: 10px;">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="btn-continue-10" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 11: Primary Contact Email (Col M - Required Double-Entry) -->
+        <div class="step" id="step-11">
+          <h2>Primary Caregiver Email</h2>
+          <input type="email" id="primaryContactEmail" required placeholder="Enter email address..." oninput="validateStep(11)">
+          <input type="email" id="primaryContactEmail_confirm" required placeholder="Re-enter to confirm..." oninput="validateStep(11)" style="margin-top: 10px;">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="btn-continue-11" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 12: Backup Contact Name (Col N - Optional) -->
+        <div class="step" id="step-12">
+          <h2>Backup Caregiver (Optional)</h2>
+          <p class="step-hint">A second contact if you can't answer right away.</p>
+          <input type="text" id="backupContactName" placeholder="e.g., John Doe (Father)" oninput="validateStep(12)">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(12)">Skip</button>
+            <button type="button" id="btn-continue-12" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 13: Backup Contact Phone (Col O - Optional Double-Entry) -->
+        <div class="step" id="step-13">
+          <h2>Backup Caregiver Phone</h2>
+          <input type="tel" id="backupContactPhone" placeholder="Enter backup phone..." oninput="validateStep(13)">
+          <input type="tel" id="backupContactPhone_confirm" placeholder="Re-enter to confirm..." oninput="validateStep(13)" style="margin-top: 10px;">
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button class="skip-btn" type="button" onclick="skipStep(13)">Skip</button>
+            <button type="button" id="btn-continue-13" onclick="nextStep()" disabled>Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 14: Final Save & Activate -->
+        <div class="step" id="step-14">
+          <h1>All Set!</h1>
+          <p style="margin-bottom: 24px; font-size: 1.1rem; color: #444;">You've completed all the steps. Click below to securely save and activate this CareTap profile.</p>
+          <div class="nav-buttons">
+            <button class="back-btn" type="button" onclick="prevStep()">Back</button>
+            <button type="button" id="submitBtn" onclick="submitForm()">Save Profile &amp; Activate</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- 2. ACTIVATED PROFILE FINDER UI -->
+    <div class="card" id="profileView" style="display:none;">
+      <h2 id="greetingTitle">Please help me reconnect with my caregiver.</h2>
+      <img id="profilePhoto" class="profile-pic" alt="Profile Photo" onerror="this.style.display='none';" />
+      <h3 id="preferredNameDisplay"></h3>
+      <p class="subtitle" id="subtitleText">Please use the buttons below to contact my caregiver.</p>
+
+      <div id="infoSection" class="info-section">
+        <div id="infoLanguage" class="info-item"></div>
+        <div id="infoApproach" class="info-item"></div>
+        <div id="infoCalming" class="info-item"></div>
+        <div id="infoMedical" class="info-item"></div>
+        <div id="infoAllergies" class="info-item"></div>
+        <div id="infoCityState" class="info-item"></div>
+      </div>
+
+      <a href="#" id="callBtn" class="action-btn call-btn">Call Caregiver</a>
+      <button id="textBtn" class="action-btn text-btn">Text Caregiver</button>
+      <button id="emailBtn" class="action-btn email-btn">Email Caregiver</button>
+
+      <div id="backupDivider" class="backup-divider">Backup Caregiver</div>
+      <a href="#" id="backupCallBtn" class="action-btn call-btn">Call Backup Caregiver</a>
+      <button id="backupTextBtn" class="action-btn text-btn">Text Backup Caregiver</button>
+
+      <a href="tel:911" id="emergencyBtn" class="action-btn emergency-btn">Can't Reach Caregiver? Call 911</a>
+
+      <div class="profile-footer">
+        <img src="CareTapLogoV1.png" alt="CareTap Logo" onerror="this.style.display='none';">
+      </div>
+    </div>
+
+    <!-- Location Request Modal -->
+    <div id="locationModal" class="modal-overlay">
+      <div class="modal-card">
+        <h3>Share Location?</h3>
+        <p id="modalText">Please allow access to your location to help reunite this person with their caregiver.</p>
+        <button id="allowLocationBtn" class="modal-btn btn-allow">Allow Location Access</button>
+        <button id="skipLocationBtn" class="modal-btn btn-skip">Skip / Send Without Location</button>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "https://script.google.com/macros/s/AKfycbyf8gPH0TrGGZBkiMatQfaAu0F6MgCa4pPXUJPXwvQ9l9MfraCAxccJoo7pSK3nshEgEA/exec";
+
+      // Extract Tag ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const activeTagId = urlParams.get('id');
+
+      let preferredNameCache = "A CARETAP WEARER";
+      let primaryPhoneCache = "";
+      let primaryEmailCache = "";
+      let backupPhoneCache = "";
+      let pendingAction = null;
+      let currentStep = 0;
+      const totalSteps = 14;
+
+      async function apiRequest(payload) {
+        payload.tagId = activeTagId;
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        return await response.json();
+      }
+
+      window.onload = async function() {
+        if (!activeTagId) {
+          document.getElementById('loadingText').innerHTML = "Invalid CareTap Tag.<br><br><span style='font-size:1rem;font-weight:normal;'>No ID found.</span>";
+          document.getElementById('spinnerAnim').style.display = 'none';
+          return;
+        }
+
+        try {
+          const statusResult = await apiRequest({ action: 'checkStatus' });
+
+          if (statusResult.success) {
+            if (statusResult.isEmpty) {
+              document.getElementById('loadingSpinner').style.display = 'none';
+              document.getElementById('tagIdDisplay').innerText = "Tag ID: " + activeTagId;
+              document.getElementById('setupWizard').style.display = 'block';
+            } else {
+              loadAndShowProfile();
+            }
+          } else {
+            document.getElementById('loadingText').innerHTML = "Tag Registration Error.<br><br><span style='font-size:1rem;font-weight:normal;'>" + escapeHtml(statusResult.error) + "</span>";
+            document.getElementById('spinnerAnim').style.display = 'none';
+          }
+        } catch (error) {
+          document.getElementById('loadingText').innerHTML = "Error connecting to server. Please check your connection.";
+          document.getElementById('spinnerAnim').style.display = 'none';
+        }
+      };
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // --- 1. SETUP WIZARD LOGIC ---
+      function handleLanguageChange() {
+        const select = document.getElementById('primaryLanguageSelect');
+        const otherInput = document.getElementById('primaryLanguageOther');
+        otherInput.style.display = (select.value === 'Other') ? 'block' : 'none';
+        if (select.value !== 'Other') otherInput.value = '';
+        validateStep(3);
+      }
+
+      function handleOtherApproach() {
+        const others = document.querySelectorAll('.approach-other');
+        const noneCb = document.getElementById('approach-none');
+        const noneLabel = document.getElementById('label-approach-none');
+        if (Array.from(others).some(cb => cb.checked)) {
+          noneCb.checked = false; noneCb.disabled = true; noneLabel.style.opacity = '0.5'; noneLabel.style.cursor = 'not-allowed';
+        } else {
+          noneCb.disabled = false; noneLabel.style.opacity = '1'; noneLabel.style.cursor = 'pointer';
+        }
+        validateStep(4);
+      }
+
+      function validateStep(stepIndex) {
+        const continueBtn = document.getElementById('btn-continue-' + stepIndex);
+        if (!continueBtn) return;
+
+        if (stepIndex === 1) {
+          continueBtn.disabled = document.getElementById('preferredName').value.trim().length === 0;
+        } else if (stepIndex === 2) {
+          continueBtn.disabled = document.getElementById('photoFile').files.length === 0;
+        } else if (stepIndex === 3) {
+          const langVal = document.getElementById('primaryLanguageSelect').value;
+          continueBtn.disabled = (langVal === 'Other' && document.getElementById('primaryLanguageOther').value.trim().length === 0);
+        } else if (stepIndex === 4) {
+          continueBtn.disabled = document.querySelectorAll('input[name="approach"]:checked').length === 0;
+        } else if (stepIndex === 5) {
+          continueBtn.disabled = document.getElementById('calmingTip').value.trim().length === 0;
+        } else if (stepIndex === 6) {
+          const checked = document.querySelectorAll('input[name="medical"]:checked').length > 0;
+          const other = document.getElementById('medicalOther').value.trim().length > 0;
+          continueBtn.disabled = !(checked || other);
+        } else if (stepIndex === 7) {
+          const checked = document.querySelectorAll('input[name="allergies"]:checked').length > 0;
+          const other = document.getElementById('allergiesOther').value.trim().length > 0;
+          continueBtn.disabled = !(checked || other);
+        } else if (stepIndex === 8) {
+          continueBtn.disabled = document.getElementById('cityState').value.trim().length === 0;
+        } else if (stepIndex === 9) {
+          continueBtn.disabled = document.getElementById('primaryContactName').value.trim().length === 0;
+        } else if (stepIndex === 10) {
+          const p1 = document.getElementById('primaryContactPhone').value.trim();
+          const p2 = document.getElementById('primaryContactPhone_confirm').value.trim();
+          continueBtn.disabled = (p1 === '' || p1 !== p2);
+        } else if (stepIndex === 11) {
+          const e1 = document.getElementById('primaryContactEmail').value.trim();
+          const e2 = document.getElementById('primaryContactEmail_confirm').value.trim();
+          continueBtn.disabled = (e1 === '' || e1 !== e2);
+        } else if (stepIndex === 12) {
+          continueBtn.disabled = document.getElementById('backupContactName').value.trim().length === 0;
+        } else if (stepIndex === 13) {
+          const bp1 = document.getElementById('backupContactPhone').value.trim();
+          const bp2 = document.getElementById('backupContactPhone_confirm').value.trim();
+          continueBtn.disabled = (bp1 === '' || bp1 !== bp2);
+        }
+      }
+
+      function showStep(stepIndex) {
+        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+        document.getElementById('step-' + stepIndex).classList.add('active');
+        validateStep(stepIndex);
+      }
+
+      function prevStep() {
+        if (currentStep === 14 && document.getElementById('backupContactName').value.trim() === '') {
+          currentStep = 12;
+          showStep(currentStep);
+          return;
+        }
+        if (currentStep > 0) {
+          currentStep--;
+          showStep(currentStep);
+        }
+      }
+
+      function nextStep() {
+        if (currentStep === 1) {
+          const name = document.getElementById('preferredName').value.trim();
+          document.getElementById('label-photo').innerText = name + "'s Photo (Optional)";
+        }
+        if (currentStep < totalSteps) {
+          currentStep++;
+          showStep(currentStep);
+        }
+      }
+
+      function skipStep(stepIndex) {
+        if (stepIndex === 2) {
+          document.getElementById('photoFile').value = '';
+        } else if (stepIndex === 5) {
+          document.getElementById('calmingTip').value = '';
+        } else if (stepIndex === 6) {
+          document.querySelectorAll('input[name="medical"]').forEach(cb => cb.checked = false);
+          document.getElementById('medicalOther').value = '';
+        } else if (stepIndex === 7) {
+          document.querySelectorAll('input[name="allergies"]').forEach(cb => cb.checked = false);
+          document.getElementById('allergiesOther').value = '';
+        } else if (stepIndex === 8) {
+          document.getElementById('cityState').value = '';
+        } else if (stepIndex === 12) {
+          document.getElementById('backupContactName').value = '';
+          document.getElementById('backupContactPhone').value = '';
+          document.getElementById('backupContactPhone_confirm').value = '';
+          currentStep = 14;
+          showStep(currentStep);
+          return;
+        } else if (stepIndex === 13) {
+          document.getElementById('backupContactPhone').value = '';
+          document.getElementById('backupContactPhone_confirm').value = '';
+        }
+        nextStep();
+      }
+
+      function getCheckedAndOther(checkboxName, otherInputId) {
+        const items = Array.from(document.querySelectorAll(`input[name="${checkboxName}"]:checked`)).map(cb => cb.value);
+        if (otherInputId) {
+          const otherVal = document.getElementById(otherInputId).value.trim();
+          if (otherVal) items.push(otherVal);
+        }
+        return items.join(", ");
+      }
+
+      function getPrimaryLanguage() {
+        const selectVal = document.getElementById('primaryLanguageSelect').value;
+        return (selectVal === 'Other') ? document.getElementById('primaryLanguageOther').value.trim() : selectVal;
+      }
+
+      function getBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve({ data: reader.result.split(',')[1], mimeType: file.type });
+          reader.onerror = error => reject(error);
+        });
+      }
+
+      async function submitForm() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = 'Saving Profile...';
+        btn.disabled = true;
+
+        try {
+          const fileInput = document.getElementById('photoFile');
+          let imageData = null;
+          if (fileInput.files.length > 0) imageData = await getBase64(fileInput.files[0]);
+
+          const approachVal = getCheckedAndOther('approach', null);
+
+          const payload = {
+            action: 'submitForm',
+            preferredName: document.getElementById('preferredName').value.trim(),
+            photoImage: imageData,
+            primaryLanguage: getPrimaryLanguage(),
+            approach: (approachVal === 'No Special Notes') ? '' : approachVal,
+            calmingTip: document.getElementById('calmingTip').value.trim(),
+            medicalConditions: getCheckedAndOther('medical', 'medicalOther'),
+            allergiesMeds: getCheckedAndOther('allergies', 'allergiesOther'),
+            cityState: document.getElementById('cityState').value.trim(),
+            primaryContactName: document.getElementById('primaryContactName').value.trim(),
+            primaryContactPhone: document.getElementById('primaryContactPhone').value.trim(),
+            primaryContactEmail: document.getElementById('primaryContactEmail').value.trim(),
+            backupContactName: document.getElementById('backupContactName').value.trim(),
+            backupContactPhone: document.getElementById('backupContactPhone').value.trim()
+          };
+
+          const result = await apiRequest(payload);
+
+          if (result.success) {
+            document.getElementById('setupWizard').style.display = 'none';
+            document.getElementById('loadingText').innerHTML = "Activating CareTap...";
+            document.getElementById('spinnerAnim').style.display = 'block';
+            document.getElementById('loadingSpinner').style.display = 'block';
+            setTimeout(loadAndShowProfile, 1500);
+          } else {
+            alert('Error saving data: ' + result.error);
+            btn.innerText = 'Save Profile & Activate';
+            btn.disabled = false;
+          }
+        } catch (error) {
+          alert('Transmission error.');
+          btn.innerText = 'Save Profile & Activate';
+          btn.disabled = false;
+        }
+      }
+
+      // --- 2. ACTIVATED PROFILE LOGIC ---
+      async function loadAndShowProfile() {
+        try {
+          const result = await apiRequest({ action: 'getProfile' });
+
+          if (result.success && result.data) {
+            const contact = result.data;
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('profileView').style.display = 'block';
+
+            if (contact.preferredName) {
+              preferredNameCache = String(contact.preferredName).toUpperCase();
+              document.getElementById('preferredNameDisplay').textContent = preferredNameCache;
+              document.getElementById('preferredNameDisplay').style.display = "block";
+              document.getElementById('modalText').textContent = "Please allow access to your location to help reunite " + contact.preferredName + " with their caregiver.";
+            }
+
+            if (contact.primaryContactName && String(contact.primaryContactName).trim() !== "") {
+              document.getElementById('subtitleText').textContent = "Please use the buttons below to contact my caregiver, " + contact.primaryContactName + ".";
+            }
+
+            if (contact.photoUrl && String(contact.photoUrl).trim() !== "") {
+              const photoEl = document.getElementById('profilePhoto');
+              let finalUrl = String(contact.photoUrl);
+              if (finalUrl.includes('drive.google.com/uc?id=')) {
+                finalUrl = finalUrl.replace('uc?id=', 'thumbnail?id=') + '&sz=w400';
+              }
+              photoEl.src = finalUrl;
+              photoEl.style.display = "block";
+            }
+
+            let hasExtraInfo = false;
+            const appendInfo = (id, label, value) => {
+              const strVal = (value !== null && value !== undefined) ? String(value).trim() : "";
+              if (strVal !== "") {
+                const el = document.getElementById(id);
+                el.innerHTML = "<strong>" + label + ":</strong> " + escapeHtml(strVal);
+                el.style.display = "block";
+                hasExtraInfo = true;
+              }
+            };
+
+            appendInfo('infoLanguage', 'Primary Language', contact.primaryLanguage);
+            appendInfo('infoApproach', 'Approach & Communication', contact.approach);
+            appendInfo('infoCalming', 'Calming Tip', contact.calmingTip);
+            appendInfo('infoMedical', 'Medical Conditions', contact.medicalConditions);
+            appendInfo('infoAllergies', 'Allergies & Critical Meds', contact.allergiesMeds);
+            appendInfo('infoCityState', 'Home Area', contact.cityState);
+            if (hasExtraInfo) document.getElementById('infoSection').style.display = "block";
+
+            // Primary Caregiver Buttons
+            const primaryLabel = (contact.primaryContactName && String(contact.primaryContactName).trim() !== "")
+              ? contact.primaryContactName
+              : "Caregiver";
+
+            if (contact.primaryContactPhone && String(contact.primaryContactPhone).trim() !== "") {
+              primaryPhoneCache = String(contact.primaryContactPhone).trim();
+              const callBtn = document.getElementById('callBtn');
+              callBtn.href = "tel:" + primaryPhoneCache;
+              callBtn.textContent = "Call " + primaryLabel;
+              callBtn.style.display = "block";
+
+              const textBtn = document.getElementById('textBtn');
+              textBtn.textContent = "Text " + primaryLabel;
+              textBtn.style.display = "block";
+            }
+
+            if (contact.primaryContactEmail && String(contact.primaryContactEmail).trim() !== "") {
+              primaryEmailCache = String(contact.primaryContactEmail).trim();
+              const emailBtn = document.getElementById('emailBtn');
+              emailBtn.textContent = "Email " + primaryLabel;
+              emailBtn.style.display = "block";
+            }
+
+            // Backup Caregiver Buttons
+            if (contact.backupContactPhone && String(contact.backupContactPhone).trim() !== "") {
+              backupPhoneCache = String(contact.backupContactPhone).trim();
+              const backupLabel = (contact.backupContactName && String(contact.backupContactName).trim() !== "")
+                ? contact.backupContactName
+                : "Backup Caregiver";
+
+              document.getElementById('backupDivider').style.display = "block";
+
+              const bCallBtn = document.getElementById('backupCallBtn');
+              bCallBtn.href = "tel:" + backupPhoneCache;
+              bCallBtn.textContent = "Call " + backupLabel;
+              bCallBtn.style.display = "block";
+
+              const bTextBtn = document.getElementById('backupTextBtn');
+              bTextBtn.textContent = "Text " + backupLabel;
+              bTextBtn.style.display = "block";
+            }
+          }
+        } catch (error) {
+          document.getElementById('loadingText').innerHTML = "Error loading profile data.";
+          document.getElementById('spinnerAnim').style.display = 'none';
+        }
+      }
+
+      // Communication Buttons & GPS Modal
+      document.getElementById('textBtn').addEventListener('click', function() {
+        pendingAction = 'text';
+        document.getElementById('locationModal').style.display = 'flex';
+      });
+      document.getElementById('emailBtn').addEventListener('click', function() {
+        pendingAction = 'email';
+        document.getElementById('locationModal').style.display = 'flex';
+      });
+      document.getElementById('backupTextBtn').addEventListener('click', function() {
+        pendingAction = 'backup_text';
+        document.getElementById('locationModal').style.display = 'flex';
+      });
+
+      document.getElementById('allowLocationBtn').addEventListener('click', function() {
+        this.innerHTML = "Locating...";
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(position) {
+              document.getElementById('locationModal').style.display = 'none';
+              document.getElementById('allowLocationBtn').innerHTML = "Allow Location Access";
+              triggerCommunication(position.coords.latitude, position.coords.longitude);
+            },
+            function(error) {
+              document.getElementById('locationModal').style.display = 'none';
+              document.getElementById('allowLocationBtn').innerHTML = "Allow Location Access";
+              triggerCommunication(null, null);
+            }
+          );
+        } else {
+          document.getElementById('locationModal').style.display = 'none';
+          triggerCommunication(null, null);
+        }
+      });
+
+      document.getElementById('skipLocationBtn').addEventListener('click', function() {
+        document.getElementById('locationModal').style.display = 'none';
+        triggerCommunication(null, null);
+      });
+
+      function triggerCommunication(lat, lng) {
+        const gpsText = (lat && lng)
+          ? " We are currently at: https://maps.google.com/?q=" + lat + "," + lng
+          : " Please contact me for our location.";
+        const messageBody = encodeURIComponent("URGENT: I am with " + preferredNameCache + " (CareTap ID: " + activeTagId + ") and trying to reunite them with their caregiver." + gpsText);
+        const subjectLine = encodeURIComponent("URGENT: CareTap Alert for " + preferredNameCache);
+
+        if (pendingAction === 'text' && primaryPhoneCache) {
+          window.location.href = "sms:" + primaryPhoneCache + "?body=" + messageBody;
+        } else if (pendingAction === 'backup_text' && backupPhoneCache) {
+          window.location.href = "sms:" + backupPhoneCache + "?body=" + messageBody;
+        } else if (pendingAction === 'email' && primaryEmailCache) {
+          window.location.href = "mailto:" + primaryEmailCache + "?subject=" + subjectLine + "&body=" + messageBody;
+        }
+        pendingAction = null;
+      }
+    </script>
+  </body>
+</html>
